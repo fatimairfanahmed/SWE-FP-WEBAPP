@@ -1,0 +1,49 @@
+/*
+This is an EXAMPLE css file from https://www.section.io/engineering-education/rendering-html-pages-as-a-http-server-response-using-node-js/
+that i put in to make sure I could use it &     
+to mess around with css
+*/
+
+/*
+I guess these help format the html display, add colors, borders, sizing
+*/
+
+
+/*
+makes a blue box around the input forms and subscribe button
+*/
+.subscribe-container {
+    max-width: 800px;
+    margin: 60px auto;
+    background-color: rgba(130, 184, 219, 0.5);
+    border: 5px solid rgb(98, 143, 228);
+}
+/*centering and size adjustments for elements within boundaries, i think */
+.subscribe-container form {
+    display: flex;
+    flex-wrap: wrap;
+}
+.subscribe-container form input {
+    margin: 15px;
+    border: 1px solid rgb(98, 143, 228);
+    padding: 0.4rem;
+}
+/*
+fixes sizes of subcribe button, 2 forms
+*/
+.subscribe-container form input {
+    flex: 1 1 200px;
+}
+
+/*
+makes subscribe button green
+*/
+.subscribe-container form input[type="submit"] {
+    border-radius: 3px;
+    background-color: rgba(17, 228, 10, 0.5);
+color: rgb(98, 143, 228);
+}
+
+.subscribe-container form input[type="email"] {
+    flex: 1 1 250px;
+}
