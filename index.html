@@ -18,13 +18,15 @@ to mess around with html
     <input type="Title" name="name of survey" placeholder="Title" required>
     <input type="Description" name="Description" placeholder="description" required>
     <input type="Questions" name="question" placeholder="question" required>
-
     <input class="Survey" type="submit" value="create survey">
 
     <form action = "/add" method="POST">
        <input type="Questions" name="question" placeholder="question" required>
-
       <input class="Survey" type="submit" value="add question">
+
+      <form action = "/edit" method="POST">
+        <input type="Questions" name="question" placeholder="question" required>
+        <input class="Survey" type="submit" value="edit questions">
   </form>
 
 </div>
