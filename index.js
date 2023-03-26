@@ -1,3 +1,4 @@
+// set up Express
 var express = require('express');
 var app = express();
 
@@ -8,10 +9,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // import the Person class from Person.js
 var Survey = require('./Survey.js');
 
-// first need to create the Survey!
-/*
-This endpoint creates the Survey with a title, a description, and a set of qeustions
- */
+/***************************************/
+
+//first need to create the Survey!
+//This endpoint creates the Survey with a title, a description, and a set of qeustions
 app.use('/create', (req, res)=> {
     var addSurvey = new Survey({
         title: req.body.title,
@@ -32,9 +33,7 @@ app.use('/create', (req, res)=> {
 
 
 //endpoint to add survey data
-/*
-The goal for this endpoint is to add new data (aka new questions ) to the Survey and it updates it.
- */
+//The goal for this endpoint is to add new data (aka new questions ) to the Survey and it updates it.
 app.use('/add', (req, res) =>{
     const surveyId = req.body.surveyId;
         Survey.findOneAndUpdate(
@@ -76,19 +75,64 @@ app.use('/edit', (req, res) => {
 
 });
 
-/*
-ok so findAndUpdate is good to add and edit stuff, the fields that should be changed are
-the update case, $push basically add an elemnet to the array (aka our questions)
-the $set updates an element in the array. aka edit one of the questions
-$pull removes and element
- */
 
+app.use('/deleteQuestion', (req, res) => {
 
-/*I edited the index.html file so it shows me to create the survey. and the /add feature. I think we have to fix it though
- b/c rn, it shows me both tasks on the same page, and ideally i think we want the create survey, and then
- in the view feature should be a button to add a question to the survey (i think?
- $inc is to increase or decrease a number field
- */
+    const surveyId = req.query.surveyId;
+    const questionToDelete = req.query.questionToDelete;
+
+    Survey.findByIdAndUpdate(surveyId, { $pull: { questions: questionToDelete } }, (err, survey) => {
+        if (err) {
+          console.log("Error:", err);
+          return res.status(500).json({ message: "Error deleting question" });
+        }
+    
+        if (!survey) {
+          console.log("Survey not found");
+          return res.status(404).json({ message: "Survey not found" });
+        }
+    
+        res.redirect('/home');
+      });
+});
+
+//endpoint for viewing all the questions
+app.use('/all', (req, res) => {
+    
+	// find all the Person objects in the database
+	Survey.find( {}, (err, surveys) => {
+		if (err) {
+		    res.type('html').status(200);
+		    console.log('uh oh' + err);
+		    res.write(err);
+		}
+		else {
+		    if (surveys.length == 0) {
+			res.type('html').status(200);
+			res.write('There are no surveys');
+			res.end();
+			return;
+		    }
+		    else {
+			res.type('html').status(200);
+			res.write('Here are the surveys in the database:');
+			res.write('<ul>');
+			// show all the questions in the survey
+			surveys.forEach( (survey) => {
+			    res.write('<li>');
+			    res.write('Title: ' + survey.title + '; decription: ' + survey.description + '; questions: ' + survey.questions);
+			    // this creates a link to the /delete endpoint
+			    res.write(" <a href=\"/deleteQuestion?qu=" + survey.questions.questionToDelete + "\">[Delete]</a>");
+			    res.write('</li>');
+					 
+			});
+			res.write('</ul>');
+			res.end();
+		    }
+		}
+	    });
+});
+
 
 app.use('/home', (req, res) => {
 

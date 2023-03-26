@@ -9,7 +9,7 @@ var Schema = mongoose.Schema;
 var surveySchema = new Schema({
     title : {type: String, required: false},
     description : {type: String, required: false},
-    questions: [{type: String, required: true}],    //array cause well have a couple questions
+    questions: [{type: String, required: true}],    //array cause we'll have a couple questions
     created_last: {type: Date, default: Date.now}
 });
 
