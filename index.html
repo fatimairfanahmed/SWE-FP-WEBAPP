@@ -1,34 +1,30 @@
-<!--
-This is an EXAMPLE html file from https://www.section.io/engineering-education/rendering-html-pages-as-a-http-server-response-using-node-js/
-that i put in to make sure I could display &
-to mess around with html
--->
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="app.css">
-  <link rel="stylesheet"
-  href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css">
-  <title></title>
-</head>
-<body>
-<div class="subscribe-container">
-  <form action = "/create" method="POST">
-    <input type="Title" name="name of survey" placeholder="Title" required>
-    <input type="Description" name="Description" placeholder="description" required>
-    <input type="Questions" name="question" placeholder="question" required>
-    <input class="Survey" type="submit" value="create survey">
-
-    <form action = "/add" method="POST">
-       <input type="Questions" name="question" placeholder="question" required>
-      <input class="Survey" type="submit" value="add question">
-
-      <form action = "/edit" method="POST">
-        <input type="Questions" name="question" placeholder="question" required>
-        <input class="Survey" type="submit" value="edit questions">
-  </form>
-
-</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="app.css" />
+    <link
+      rel="stylesheet"
+      href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css"
+    />
+    <title>Please add questions to the survey</title>
+    <style>
+      .button {
+        padding: 10px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Please add questions to the survey</h1>
+    <div class="subscribe-container">
+      <form action="/create" method="POST">
+        <input type="Questions" name="question" placeholder="question" required />
+        <button type="submit" class="button">Submit Question</button>
+      </form>
+      <form action="/all" method="GET">
+        <button type="submit" class="button">View All Questions</button>
+      </form>
+    </div>
+  </body>
 </html>

@@ -7,33 +7,38 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // import the Person class from Person.js
-var Survey = require('./Survey.js');
+var Survey = require('./Question.js');
 
 /***************************************/
 
 //first need to create the Survey!
 //This endpoint creates the Survey with a title, a description, and a set of qeustions
 app.use('/create', (req, res)=> {
-    var addSurvey = new Survey({
-        title: req.body.title,
-        description : req.body.description,
-        questions: req.body.questions,
-    });
-    addSurvey.save()
-        .then(() => {
-            console.log('Survey added:', addSurvey);
-            res.json({ success: 'Survey saved successfully.' });
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).json({ error: 'Survey could not be saved.' });
+	// construct the Question from the form data which is in the request body
+	var newQuestion = new Question ({
+		text: req.body.questionText, 
         });
+
+    newQuestion.save( (err) => { 
+        if (err) {
+            res.type('html').status(200);
+            res.write('uh oh: ' + err);
+            console.log(err);
+            res.end();
+        }
+        else {
+        // display the "successfull created" message
+            res.send('successfully added ' + newPerson.name + ' to the database');
+        }
+        });
+
     });
 
 
 
 //endpoint to add survey data
 //The goal for this endpoint is to add new data (aka new questions ) to the Survey and it updates it.
+//Leaving for Jenii to decide
 app.use('/add', (req, res) =>{
     const surveyId = req.body.surveyId;
         Survey.findOneAndUpdate(
@@ -98,8 +103,9 @@ app.use('/deleteQuestion', (req, res) => {
 
 //endpoint for viewing all the questions
 app.use('/all', (req, res) => {
+    res.sendFile(__dirname + "/all.html");
     
-	// find all the Person objects in the database
+	// find all the survey objects in the database
 	Survey.find( {}, (err, surveys) => {
 		if (err) {
 		    res.type('html').status(200);
