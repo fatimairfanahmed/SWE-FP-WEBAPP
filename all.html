@@ -11,23 +11,26 @@
 
 	<script>
 		fetch('/all')
-			.then((response) => response.json())
-			.then((data) => {
+			.then(response => response.json())
+			.then(data => {
 				const questionsList = document.getElementById("questions-list");
-				data.forEach((question) => {
+				data.forEach(question => {
 					const li = document.createElement("li");
 					const questionText = document.createTextNode(question.question);
 					const deleteLink = document.createElement("a");
-          deleteLink.href = question.deleteLink + "/delete";
+					deleteLink.href = question.deleteLink;
 					deleteLink.textContent = "[Delete]";
 					const editLink = document.createElement("a");
-					editLink.href = question.editLink + "/edit";
+					editLink.href = question.editLink;
 					editLink.textContent = "[Edit]";
 					li.appendChild(questionText);
 					li.appendChild(deleteLink);
 					li.appendChild(editLink);
 					questionsList.appendChild(li);
 				});
+			})
+			.catch(error => {
+				console.error(error);
 			});
 	</script>
 </body>

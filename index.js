@@ -74,7 +74,7 @@ app.use('/all', (req, res) => {
                 editLink: "/edit?text=" + question.questionText
               });
             });
-            res.sendFile(__dirname + "/all.html");
+            res.json(questionList); // Send questionList as JSON
         }
 	    });
 });
