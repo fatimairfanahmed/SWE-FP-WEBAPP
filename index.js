@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const Question = require('./Question.js');
+var Profile = require('./Profile.js');
 
 /***************************************/
 
@@ -20,7 +21,7 @@ app.use('/create', (req, res)=> {
     newQuestion.save()
         .then(() => {
             console.log('Question added:', newQuestion);
-            res.redirect('/create.html');
+            res.redirect('/index.html'); //was create.html
            // res.json({ success: 'Question' + ' " ' + newQuestion.questionText + ' " ' + ' saved successfully.' });
         })
         .catch((error) => {
@@ -136,13 +137,249 @@ app.get('/delete', (req, res) => {
 app.use(express.static(__dirname));
 
 
-app.use('/', (req, res) => {
+app.use('/createquestion', (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
-app.use('/profile', (req, res) => {
+/**app.use('/ ', (req, res) => {
+  res.sendFile(__dirname + '/loginForm.html');
+});*/
 
+
+
+
+
+
+app.use('/signup', (req, res) => {
+  res.sendFile(__dirname + "/createprofile.html");
 });
+
+
+app.use('/createprof', (req, res) =>{
+
+
+  var newProf = new Profile ({
+      email: req.query.email,
+      password: req.query.password,
+      userName: req.query.userName
+  });
+
+
+  Profile.findOne({ userName: req.query.userName})
+      .then((user)=>{
+          if(user != null){
+              res.type('html').status(200);
+              res.write('<li>');
+              res.write("Username: \"" + req.query.userName + "\" is taken.");
+              res.write('<ul>')
+              res.write(" <a href=\"/signup" + "\">[Try another username]</a>");
+              res.write('</li>');
+              res.end();
+          }
+          else{
+              newProf.save()
+          .then(() => {
+              res.redirect('/allProfiles');
+          })
+          .catch((error) => {
+              console.log(error);
+          });
+          }
+      })
+      .catch((err)=>{
+          console.log(err);
+      });
+
+
+     
+         
+         
+         
+         
+});
+
+
+app.use('/login', (req, res) =>{
+  res.sendFile(__dirname + "/loginForm.html");
+});
+
+
+app.use('/verifyLogin', (req, res) => {
+  var combo = new Profile({
+      userName: req.query.userName,
+      password: req.query.password
+  });
+
+
+  Profile.findOne({ userName: combo.userName})
+  .then((user) =>{
+      if(user == null){
+          res.type('html').status(200);
+              res.write('<li>');
+              res.write("No account with username: " + combo.userName + " exists. ");
+              res.write('<ul>')
+              res.write(" <a href=\"/signup" + "\">[Create an account]</a>");
+              res.write('</li>');
+              res.write(" <a href=\"/login" + "\">[Try a different Login]</a>");
+              res.end();
+      }
+      else{
+          if(user.password == combo.password){
+              res.redirect('/createquestion'); // should be to home page
+          }
+          else{
+              res.type('html').status(200);
+              res.write('<li>');
+              res.write("Incorrect password");
+              res.write('<ul>')
+              res.write(" <a href=\"/signup" + "\">[Create an account]</a>");
+              res.write('</li>');
+              res.write(" <a href=\"/login" + "\">[Try a different Login]</a>");
+              res.end();
+          }
+      }
+  })
+  .catch((err) =>{
+      console.log(err);
+  })
+});
+
+
+app.use('/deleteProfile', (req, res) => {
+  var filter = { 'userName' : req.query.userName };
+      Profile.findOneAndDelete( filter, (err, profile) => {
+          if(err) {
+              //res.json({ 'status' : err });
+              res.type('html').status(200);
+              res.write('<li>');
+              res.write(err);
+              res.write('</li>');
+          }
+          else if(!profile){
+              res.type('html').status(200);
+              res.write('<li>');
+              res.write('No Profile with that username exists');
+              res.write('</li>');
+          }
+          else{
+              res.type('html').status(200);
+              res.write('<li>');
+              res.write("User profile " + profile.userName + " successfully deleted. ");
+              res.write('<ul>')
+              res.write(" <a href=\"/allProfiles" + "\">[Return to profile list]</a>");
+              res.write('</li>');
+          }
+          res.end();
+
+
+   });
+});
+
+
+
+
+
+
+app.use('/allProfiles', (req, res) => {
+  var prof = new Profile ({
+      email: req.query.email,
+      password: req.query.password,
+      userName: req.query.userName
+  });
+
+
+  Profile.find( {}, (err, profiles) => {
+          if (err){
+              res.type('html').status(200);
+              console.log('error: ' + err);
+              res.write(err);
+          }
+          else{
+              if (profiles.length ==0){
+                  res.type('html').status(200);
+                  res.write('No profiles');
+                  res.end();
+                  return;
+              }
+              else{
+                  res.type('html').status(200);
+                  res.write('Here are the profiles in the database:');
+                  res.write('<ul>');
+                  profiles.forEach( (profile) => {
+                      res.write('<li>');
+                      res.write('Username: ' + profile.userName + '\nEmail: ' + profile.email + '\nPassword: ' + profile.password);
+                      res.write(" <a href=\"/deleteProfile?userName=" + profile.userName + "\">[Delete]</a>");
+                      res.write(" <a href=\"/editemail?userName=" + profile.userName + "\">[Change Email]</a>");
+                      res.write(" <a href=\"/editpassword?userName=" + profile.userName + "\">[Change Password]</a>");
+                      res.write('</li>');
+                  });
+                  res.write('</ul>');
+                  res.end();
+
+
+              }
+          }
+      });
+});
+
+
+app.use('/editemail', (req, res) =>{
+  res.type('html').status(200);
+  res.write('<body><h2>change email</h2>');
+  res.write('<form action="/changeemail" >');
+  //res.write('<label for="Username">Username: ' + req.query.userName + '</label><br>');
+  res.write('<input type="text" id="userName" name="userName" value=\"'+ req.query.userName +'\"><br><br>');
+  res.write('<label for="email">New Email:</label><br>');
+  res.write('<input type="text" id="email" name="email" value="Email"><br><br>');
+  res.write('<input type="submit" value="Submit">');
+  res.write('</form> ');
+  res.write('</body>');
+  //res.sendFile(__dirname + '/changeemail.html');
+  //take in new email
+  //send to change email
+});
+
+
+app.use('/editpassword', (req, res) =>{
+  res.type('html').status(200);
+  res.write('<body><h2>change email</h2>');
+  res.write('<form action="/changepwd" >');
+  //res.write('<label for="Username">Username: ' + req.query.userName + '</label><br>');
+  res.write('<input type="text" id="userName" name="userName" value=\"'+ req.query.userName +'\"><br><br>');
+  res.write('<label for="email">New Password:</label><br>');
+  res.write('<input type="text" id="password" name="password" value="New Password"><br><br>');
+  res.write('<input type="submit" value="Submit">');
+  res.write('</form> ');
+  res.write('</body>');
+  //res.sendFile(__dirname + '/changeemail.html');
+  //take in new email
+  //send to change email
+});
+
+
+app.use('/changeemail', (req, res) =>{
+  Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{email: req.query.email}}, {new: true}, (err,doc) =>{
+      if(err){
+          console.log(err);
+      }
+      console.log(doc);
+  });
+  console.log('user' + req.query.userName + 'email: ' + req.query.email);
+  res.redirect('/allprofiles');
+});
+
+
+app.use('/changepwd', (req, res) =>{
+  Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{password: req.query.password}}, {new: true}, (err,doc) =>{
+      if(err){
+          console.log(err);
+      }
+      console.log(doc);
+  });
+  console.log('user' + req.query.userName + 'email: ' + req.query.password);
+  res.redirect('/allprofiles');
+});
+
 
 app.post('/', (req, res) => {
     
