@@ -6,8 +6,7 @@ var app = express();
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// import the Person class from Person.js
-var Survey = require('./Question.js');
+const Question = require('./Question.js');
 
 /***************************************/
 
@@ -16,7 +15,7 @@ var Survey = require('./Question.js');
 app.use('/create', (req, res)=> {
 	// construct the Question from the form data which is in the request body
 	var newQuestion = new Question ({
-		text: req.body.questionText, 
+		questionText: req.body.questionText, 
         });
 
     newQuestion.save( (err) => { 
@@ -28,12 +27,11 @@ app.use('/create', (req, res)=> {
         }
         else {
         // display the "successfull created" message
-            res.send('successfully added ' + newPerson.name + ' to the database');
+            res.send('successfully added ' + newQuestion.questionText + ' to the database');
         }
         });
 
     });
-
 
 
 //endpoint to add survey data
@@ -59,96 +57,38 @@ app.use('/add', (req, res) =>{
             });
 });
 
-app.use('/edit', (req, res) => {
-    //this one will allow to edit the questions in the survey from an administrator side.
-    const surveyId = req.body.surveyId;
-    Survey.findOneAndUpdate({_id: surveyId },
-        { $set: { questions: req.body.questions } },
-        { new: true }
-    )
-        .then(survey => {
-            if(!survey){
-                res.status(200).json({error : "Survey not found"});
-            }
-            console.log('Survey updated:', survey);
-            res.json({ success: 'Survey updated successfully.' });
-        })
-        .catch(error => {
-            console.error(error);
-            res.status(500).json({ error: 'Survey could not be updated.' });
-        });
-
-});
-
-
-app.use('/deleteQuestion', (req, res) => {
-
-    const surveyId = req.query.surveyId;
-    const questionToDelete = req.query.questionToDelete;
-
-    Survey.findByIdAndUpdate(surveyId, { $pull: { questions: questionToDelete } }, (err, survey) => {
-        if (err) {
-          console.log("Error:", err);
-          return res.status(500).json({ message: "Error deleting question" });
-        }
-    
-        if (!survey) {
-          console.log("Survey not found");
-          return res.status(404).json({ message: "Survey not found" });
-        }
-    
-        res.redirect('/home');
-      });
-});
 
 //endpoint for viewing all the questions
 app.use('/all', (req, res) => {
-    res.sendFile(__dirname + "/all.html");
-    
-	// find all the survey objects in the database
-	Survey.find( {}, (err, surveys) => {
+	Question.find( {}, (err, questions) => {
 		if (err) {
-		    res.type('html').status(200);
-		    console.log('uh oh' + err);
-		    res.write(err);
+            res.status(500).json({ error: err });
 		}
 		else {
-		    if (surveys.length == 0) {
-			res.type('html').status(200);
-			res.write('There are no surveys');
-			res.end();
-			return;
-		    }
-		    else {
-			res.type('html').status(200);
-			res.write('Here are the surveys in the database:');
-			res.write('<ul>');
-			// show all the questions in the survey
-			surveys.forEach( (survey) => {
-			    res.write('<li>');
-			    res.write('Title: ' + survey.title + '; decription: ' + survey.description + '; questions: ' + survey.questions);
-			    // this creates a link to the /delete endpoint
-			    res.write(" <a href=\"/deleteQuestion?qu=" + survey.questions.questionToDelete + "\">[Delete]</a>");
-			    res.write('</li>');
-					 
-			});
-			res.write('</ul>');
-			res.end();
-		    }
-		}
+            const questionList = [];
+
+            questions.forEach((question) => {
+              questionList.push({
+                question: question.questionText,
+                deleteLink: "/delete?text=" + question.questionText,
+                editLink: "/edit?text=" + question.questionText
+              });
+            });
+            res.sendFile(__dirname + "/all.html");
+        }
 	    });
 });
 
 
-app.use('/home', (req, res) => {
+app.use('/delete', (req, res) => {
 
-    res.send("hello word\n");
- });
+    res.json({ success: 'Deleted' });
+
+});
+
+
 
 app.use(express.static(__dirname));
-
-
-
 
 
 app.use('/', (req, res) => {
@@ -162,15 +102,6 @@ app.use('/profile', (req, res) => {
 app.post('/', (req, res) => {
     
 });
-
-
-
-
-
-
-
-// add endpoint
-
 
 
 

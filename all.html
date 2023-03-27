@@ -6,5 +6,29 @@
 <body>
 	<h1>You are viewing all the questions in the survey</h1>
 	<h2>Please click on add, edit or delete to make changes to the questions</h2>
+	<ul id="questions-list">
+	</ul>
+
+	<script>
+		fetch('/all')
+			.then((response) => response.json())
+			.then((data) => {
+				const questionsList = document.getElementById("questions-list");
+				data.forEach((question) => {
+					const li = document.createElement("li");
+					const questionText = document.createTextNode(question.question);
+					const deleteLink = document.createElement("a");
+          deleteLink.href = question.deleteLink + "/delete";
+					deleteLink.textContent = "[Delete]";
+					const editLink = document.createElement("a");
+					editLink.href = question.editLink + "/edit";
+					editLink.textContent = "[Edit]";
+					li.appendChild(questionText);
+					li.appendChild(deleteLink);
+					li.appendChild(editLink);
+					questionsList.appendChild(li);
+				});
+			});
+	</script>
 </body>
 </html>

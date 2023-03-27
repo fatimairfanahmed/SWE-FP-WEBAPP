@@ -18,13 +18,19 @@
   <body>
     <h1>Please add questions to the survey</h1>
     <div class="subscribe-container">
+
+
       <form action="/create" method="POST">
-        <input type="Questions" name="question" placeholder="question" required />
+        <input type="text" name="questionText" placeholder="question" required />
         <button type="submit" class="button">Submit Question</button>
       </form>
-      <form action="/all" method="GET">
-        <button type="submit" class="button">View All Questions</button>
+
+
+      <form action="/all" method="GET" style="padding-top: 10px;">
+        <button type="submit" style="padding: 10px;">View All Questions</button>
       </form>
+
+
     </div>
   </body>
 </html>
