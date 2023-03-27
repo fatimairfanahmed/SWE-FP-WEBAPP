@@ -19,13 +19,13 @@ app.use('/create', (req, res)=> {
         });
     newQuestion.save()
         .then(() => {
-            console.log('Survey added:', newQuestion);
-            res.redirect('/all.html');
+            console.log('Question added:', newQuestion);
+            res.redirect('/create.html');
            // res.json({ success: 'Question' + ' " ' + newQuestion.questionText + ' " ' + ' saved successfully.' });
         })
         .catch((error) => {
             console.error(error);
-            res.status(500).json({ error: 'Survey could not be saved.' });
+            res.status(500).json({ error: 'Question could not be saved.' });
         });
 });
 
@@ -114,12 +114,22 @@ app.use('/all', (req, res) => {
 });
 
 
-app.use('/delete', (req, res) => {
-
-    //res.json({ success: 'Deleted' });
-    res.redirect('/all.html');
-
-});
+app.get('/delete', (req, res) => {
+    const questionText = req.query.text;
+  
+    // Find the question in the database and delete it
+    Question.findOneAndDelete({ questionText }, (err, question) => {
+      if (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Could not delete question.' });
+      } else if (!question) {
+        res.status(404).json({ error: 'Question not found.' });
+      } else {
+        console.log('Question deleted:', question);
+        res.redirect('/all.html');
+      }
+    });
+  });
 
 
 
