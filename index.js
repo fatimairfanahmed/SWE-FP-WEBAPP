@@ -146,7 +146,18 @@ app.use('/createquestion', (req, res) => {
 });*/
 
 
-
+app.use('/loginsuccess', (req, res) => {
+  res.type('html').status(200);
+  res.write('<li>');
+  res.write("Login successful, welcome!");
+  res.write('<ul>')
+  res.write(" <a href=\"/createquestion" + "\">[Add a survey question]</a>");
+  res.write('</li>');
+  res.write('<ul>')
+  res.write(" <a href=\"/allprofiles" + "\">[View user profiles]</a>");
+  res.write('</li>');
+  res.end();
+});
 
 
 
@@ -225,7 +236,7 @@ app.use('/verifyLogin', (req, res) => {
       }
       else{
           if(user.password == combo.password){
-              res.redirect('/createquestion'); // should be to home page
+              res.redirect('/loginsuccess'); // should be to home page
           }
           else{
               res.type('html').status(200);
@@ -305,6 +316,8 @@ app.use('/allProfiles', (req, res) => {
                   res.type('html').status(200);
                   res.write('Here are the profiles in the database:');
                   res.write('<ul>');
+                  res.write(" <a href=\"/signup\">[Add New]</a>");
+                  res.write('<ul>');
                   profiles.forEach( (profile) => {
                       res.write('<li>');
                       res.write('Username: ' + profile.userName + '\nEmail: ' + profile.email + '\nPassword: ' + profile.password);
@@ -314,6 +327,7 @@ app.use('/allProfiles', (req, res) => {
                       res.write('</li>');
                   });
                   res.write('</ul>');
+                  res.write(" <a href=\"/loginsuccess\">[return]</a>");
                   res.end();
 
 
