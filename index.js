@@ -9,7 +9,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 const Question = require('./Question.js');
-var Profile = require('./Profile.js');
+const Profile = require('./Profile.js');
+
+const Answer = require('./Answer.js');
 
 
 /***************************************/
@@ -147,7 +149,54 @@ app.get('/delete', (req, res) => {
         res.redirect('/all.html');
       }
     });
-  });
+});
+
+
+
+app.use('/AddAnswer', (req, res) => {
+    var newAnswer = new Answer({
+        answerQuestion: req.query.answerQuestion,
+        answerText: req.query.answerText,
+        answerNumber: req.query.answerNumber
+
+    });
+    newAnswer.save()
+        .then(() => {
+            console.log('Answer added:', newAnswer);
+            res.redirect('/index.html'); //was create.html
+            // res.json({ success: 'Question' + ' " ' + newQuestion.questionText + ' " ' + ' saved successfully.' });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).json({error: 'Answer could not be saved.'});
+        });
+});
+
+app.use('/allAnswers', (req, res) => {
+    Answer.find( {}, (err, answers) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        }
+        else {
+            const answerList = [];
+
+
+            answers.forEach((ans) => {
+                answerList.push({
+                    answerQuestion: ans.answerQuestion,
+                    answerText: ans.answerText,
+                    answerNumber: ans.answerNumber,
+                    /*
+                    deleteLink: "/deleteProfile?userName=" + profile.userName,
+                    editLink: "/editProfile?userName=" + profile.userName
+
+                     */
+                });
+            });
+            res.json(answerList); // Send questionList as JSON
+        }
+    });
+});
 
 
 
@@ -235,16 +284,11 @@ app.use('/createprof', (req, res) =>{
       .catch((err)=>{
           console.log(err);
       });
-
-
-
-
-     
-         
-         
-         
          
 });
+
+
+
 
 
 
