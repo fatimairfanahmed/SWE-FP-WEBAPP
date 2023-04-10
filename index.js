@@ -2,21 +2,25 @@
 var express = require('express');
 var app = express();
 
+
 // set up BodyParser
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
+
 const Question = require('./Question.js');
 var Profile = require('./Profile.js');
 
+
 /***************************************/
+
 
 //first need to create the Survey!
 //This endpoint creates the Survey with a title, a description, and a set of qeustions
 app.use('/create', (req, res)=> {
-	// construct the Question from the form data which is in the request body
+  // construct the Question from the form data which is in the request body
     var newQuestion = new Question ({
-		questionText: req.body.questionText, 
+    questionText: req.body.questionText,
         });
     newQuestion.save()
         .then(() => {
@@ -31,11 +35,15 @@ app.use('/create', (req, res)=> {
 });
 
 
+
+
 //so i used app.get bc those are the ones that deal with the http requests.
+
 
 /* This endpoint uses app.get to edit a question. The app.get renders the edit form  */
 app.get('/edit', (req, res) => {
     const questionText = req.query.text;
+
 
     // Find the question in the database
     Question.findOne({questionText}, (err, question) => {
@@ -70,10 +78,14 @@ app.get('/edit', (req, res) => {
 });
 
 
+
+
 /*  This endpoint uses app.post because it handles HTTP POST request specifically */
+
 
 app.post('/edit', (req, res) => {
     const { questionText, questionId } = req.body;
+
 
     // Update the question in the database
     Question.findByIdAndUpdate(
@@ -93,14 +105,17 @@ app.post('/edit', (req, res) => {
 });
 
 
+
+
 //endpoint for viewing all the questions
 app.use('/all', (req, res) => {
-	Question.find( {}, (err, questions) => {
-		if (err) {
+  Question.find( {}, (err, questions) => {
+    if (err) {
             res.status(500).json({ error: err });
-		}
-		else {
+    }
+    else {
             const questionList = [];
+
 
             questions.forEach((question) => {
               questionList.push({
@@ -111,13 +126,15 @@ app.use('/all', (req, res) => {
             });
             res.json(questionList); // Send questionList as JSON
         }
-	    });
+      });
 });
+
+
 
 
 app.get('/delete', (req, res) => {
     const questionText = req.query.text;
-  
+ 
     // Find the question in the database and delete it
     Question.findOneAndDelete({ questionText }, (err, question) => {
       if (err) {
@@ -134,16 +151,24 @@ app.get('/delete', (req, res) => {
 
 
 
+
+
+
 app.use(express.static(__dirname));
+
+
 
 
 app.use('/createquestion', (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
+
 /**app.use('/ ', (req, res) => {
   res.sendFile(__dirname + '/loginForm.html');
 });*/
+
+
 
 
 app.use('/loginsuccess', (req, res) => {
@@ -161,12 +186,20 @@ app.use('/loginsuccess', (req, res) => {
 
 
 
+
+
+
 app.use('/signup', (req, res) => {
   res.sendFile(__dirname + "/createprofile.html");
 });
 
 
+//POST
+
+
 app.use('/createprof', (req, res) =>{
+
+
 
 
   var newProf = new Profile ({
@@ -174,6 +207,8 @@ app.use('/createprof', (req, res) =>{
       password: req.query.password,
       userName: req.query.userName
   });
+
+
 
 
   Profile.findOne({ userName: req.query.userName})
@@ -202,6 +237,8 @@ app.use('/createprof', (req, res) =>{
       });
 
 
+
+
      
          
          
@@ -210,9 +247,13 @@ app.use('/createprof', (req, res) =>{
 });
 
 
+
+
 app.use('/login', (req, res) =>{
   res.sendFile(__dirname + "/loginForm.html");
 });
+
+
 
 
 app.use('/verifyLogin', (req, res) => {
@@ -220,6 +261,8 @@ app.use('/verifyLogin', (req, res) => {
       userName: req.query.userName,
       password: req.query.password
   });
+
+
 
 
   Profile.findOne({ userName: combo.userName})
@@ -256,6 +299,8 @@ app.use('/verifyLogin', (req, res) => {
 });
 
 
+
+
 app.use('/deleteProfile', (req, res) => {
   var filter = { 'userName' : req.query.userName };
       Profile.findOneAndDelete( filter, (err, profile) => {
@@ -277,10 +322,12 @@ app.use('/deleteProfile', (req, res) => {
               res.write('<li>');
               res.write("User profile " + profile.userName + " successfully deleted. ");
               res.write('<ul>')
-              res.write(" <a href=\"/allProfiles" + "\">[Return to profile list]</a>");
+              res.write(" <a href=\"/allProfiles.html" + "\">[Return to profile list]</a>");
               res.write('</li>');
           }
           res.end();
+
+
 
 
    });
@@ -291,50 +338,34 @@ app.use('/deleteProfile', (req, res) => {
 
 
 
+
+
+
+
 app.use('/allProfiles', (req, res) => {
-  var prof = new Profile ({
-      email: req.query.email,
-      password: req.query.password,
-      userName: req.query.userName
-  });
-
-
   Profile.find( {}, (err, profiles) => {
-          if (err){
-              res.type('html').status(200);
-              console.log('error: ' + err);
-              res.write(err);
-          }
-          else{
-              if (profiles.length ==0){
-                  res.type('html').status(200);
-                  res.write('No profiles');
-                  res.end();
-                  return;
-              }
-              else{
-                  res.type('html').status(200);
-                  res.write('Here are the profiles in the database:');
-                  res.write('<ul>');
-                  res.write(" <a href=\"/signup\">[Add New]</a>");
-                  res.write('<ul>');
-                  profiles.forEach( (profile) => {
-                      res.write('<li>');
-                      res.write('Username: ' + profile.userName + '\nEmail: ' + profile.email + '\nPassword: ' + profile.password);
-                      res.write(" <a href=\"/deleteProfile?userName=" + profile.userName + "\">[Delete]</a>");
-                      res.write(" <a href=\"/editemail?userName=" + profile.userName + "\">[Change Email]</a>");
-                      res.write(" <a href=\"/editpassword?userName=" + profile.userName + "\">[Change Password]</a>");
-                      res.write('</li>');
-                  });
-                  res.write('</ul>');
-                  res.write(" <a href=\"/loginsuccess\">[return]</a>");
-                  res.end();
+    if (err) {
+            res.status(500).json({ error: err });
+    }
+    else {
+            const profList = [];
 
 
-              }
-          }
+            profiles.forEach((profile) => {
+              profList.push({
+                user: profile.userName,
+                email: profile.email,
+                password: profile.password,
+                deleteLink: "/deleteProfile?userName=" + profile.userName,
+                editLink: "/editProfile?userName=" + profile.userName
+              });
+            });
+            res.json(profList); // Send questionList as JSON
+        }
       });
 });
+
+
 
 
 app.use('/editemail', (req, res) =>{
@@ -354,6 +385,8 @@ app.use('/editemail', (req, res) =>{
 });
 
 
+
+
 app.use('/editpassword', (req, res) =>{
   res.type('html').status(200);
   res.write('<body><h2>change email</h2>');
@@ -371,6 +404,8 @@ app.use('/editpassword', (req, res) =>{
 });
 
 
+
+
 app.use('/changeemail', (req, res) =>{
   Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{email: req.query.email}}, {new: true}, (err,doc) =>{
       if(err){
@@ -381,6 +416,8 @@ app.use('/changeemail', (req, res) =>{
   console.log('user' + req.query.userName + 'email: ' + req.query.email);
   res.redirect('/allprofiles');
 });
+
+
 
 
 app.use('/changepwd', (req, res) =>{
@@ -395,12 +432,17 @@ app.use('/changepwd', (req, res) =>{
 });
 
 
+
+
 app.post('/', (req, res) => {
-    
+   
 });
 
 
 
+
+
+
  app.listen(3000, () => {
-	console.log('Listening on port 3000');
+  console.log('Listening on port 3000');
     });
