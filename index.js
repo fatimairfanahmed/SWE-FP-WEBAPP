@@ -10,7 +10,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const Question = require('./Question.js');
 const Profile = require('./Profile.js');
-
 const Answer = require('./Answer.js');
 
 
@@ -134,6 +133,10 @@ app.use('/all', (req, res) => {
 
 
 
+
+
+
+
 app.get('/delete', (req, res) => {
     const questionText = req.query.text;
  
@@ -151,14 +154,50 @@ app.get('/delete', (req, res) => {
     });
 });
 
+app.use('/deleteAnswer', (req, res) => {
+    const ansID = req.query._id;
+    Answer.findOneAndDelete({}, (err, answer) =>{
+      if(err){
+        console.error(err);
+        res.status(500).json({error: 'could not delete answer.'});
+      } else if (!answer){
+        res.status(404).json({error: 'Question not found.' });
+      } else {
+        console.log('Answer deleted:', answer);
+        res.redirect('/allAnswers');
+      }
+    });
+});
+
+app.use('/FindAnswers', (req, res) => {
+  const userName = req.query.user;
+  console.log(userName);
+  Answer.find({user: userName}, (err, answers) => {
+    if (err) {
+        res.status(500).json({error: err});
+    }
+    else{
+        const answerList = [];
+
+        answers.forEach((answer) => {
+          answerList.push({
+            answer
+          });
+        });
+        res.json(answerList);
+    }
+  })
+});
+
 
 
 app.use('/AddAnswer', (req, res) => {
     var newAnswer = new Answer({
         answerQuestion: req.query.answerQuestion,
         answerText: req.query.answerText,
-        answerNumber: req.query.answerNumber
-
+        answerNumber: req.query.answerNumber,
+        date: req.query.date,
+        user: req.query.user
     });
     newAnswer.save()
         .then(() => {
@@ -171,6 +210,7 @@ app.use('/AddAnswer', (req, res) => {
             res.status(500).json({error: 'Answer could not be saved.'});
         });
 });
+
 
 app.use('/allAnswers', (req, res) => {
     Answer.find( {}, (err, answers) => {
@@ -186,6 +226,8 @@ app.use('/allAnswers', (req, res) => {
                     answerQuestion: ans.answerQuestion,
                     answerText: ans.answerText,
                     answerNumber: ans.answerNumber,
+                    date: ans.date,
+                    user: ans.user
                     /*
                     deleteLink: "/deleteProfile?userName=" + profile.userName,
                     editLink: "/editProfile?userName=" + profile.userName

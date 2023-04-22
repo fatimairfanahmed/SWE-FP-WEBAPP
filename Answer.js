@@ -10,7 +10,8 @@ var answerSchema = new Schema({
     answerQuestion: {type: String, required: true, unique: false},
     answerText: {type: String, required: true, unique: false},
     answerNumber: {type: String, required: true, unique: false},
-
+    date: {type: String, required: true, unique: false}, //string formatted yearmonthday, ex 20230414
+    user: {type: String, required: true, unique: false} //username of the person responding to the question
 });
 
 // export personSchema as a class called Person
