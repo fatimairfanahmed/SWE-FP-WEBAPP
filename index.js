@@ -38,6 +38,100 @@ app.use('/create', (req, res)=> {
 
 
 
+/* Endpoint that allows the user to look for a specific question */
+app.get('/searchQuestion',(req,res) => {
+    const questionText = req.query.questionText;
+
+    Question.find().then((questions) => {
+
+        const index = questions.findIndex((q) => q.questionText === questionText);
+
+        // If the question is in the database, move it to the top and send it as the response
+        if (index !== -1) {
+            const question = questions[index];
+            questions.splice(index, 1);
+            questions.unshift(question);
+
+            const editEndpoint = `/edit?text=${question.questionText}`;
+            const deleteEndpoint = `/delete?text=${question.questionText}`;
+            res.send(`
+     <html>
+       <head>
+         <title>Question found</title>
+       </head>
+       <body>
+         <h1>Question found</h1>
+         <p>The question "${questionText}" was found in the database.</p>
+         <ul>
+           ${questions
+                .map(
+                    (q) =>
+                        `<li${q === question ? ' style="background-color: yellow;"' : ''}>
+                   ${q.questionText}
+                   <button onclick="location.href='${editEndpoint}'">Edit</button>
+                   <button onclick="location.href='${deleteEndpoint}'">Delete</button>
+                 </li>`
+                )
+                .join('')}
+         </ul>
+         <p><a href="/index.html">Return to home page</a></p>
+       </body>
+     </html>
+   `);
+        } else {
+            // If the question is not in the database, offer an option to add it
+            res.send(`
+     <html>
+       <head>
+         <title>Question not found</title>
+       </head>
+       <body>
+         <h1>Question not found</h1>
+         <p>The question "${questionText}" was not found in the database.</p>
+         <p>Would you like to add it?</p>
+         <form method="POST" action="/addQuestion">
+           <input type="hidden" name="questionText" value="${questionText}">
+           <input type="submit" value="Add">
+         </form>
+       </body>
+     </html>
+   `);
+        }
+    }).catch((error) => {
+        console.error(error);
+        res.status(500).json({ error: 'Could not find questions.' });
+    });
+});
+
+
+// Add a new question to the database
+app.post('/addQuestion', (req, res) => {
+    const { questionText } = req.body;
+
+    const newQuestion = new Question({ questionText });
+    newQuestion.save().then(() => {
+        console.log('Question added:', newQuestion);
+        res.send(`
+     <html>
+       <head>
+         <title>Question added</title>
+       </head>
+       <body>
+         <h1>Question added</h1>
+         <p>The question "${questionText}" was added to the database.</p>
+         <p><a href="/index.html">Return to home page</a></p>
+       </body>
+     </html>
+   `);
+    }).catch((error) => {
+        console.error(error);
+        res.status(500).json({ error: 'Question could not be saved.' });
+    });
+});
+
+
+
+
 //so i used app.get bc those are the ones that deal with the http requests.
 
 
