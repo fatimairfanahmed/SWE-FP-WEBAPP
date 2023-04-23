@@ -305,6 +305,25 @@ app.use('/AddAnswer', (req, res) => {
         });
 });
 
+app.use('/editAnswer', (req, res) => {
+    const { answerText, answerQuestion } = req.query;
+
+    // Update the answer in the database
+    Answer.findOneAndUpdate(
+        { answerQuestion: answerQuestion },
+        { answerText: answerText },
+        { new: true },
+        (err, answer) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Could not update answer.' });
+            } else {
+                console.log('Answer updated:', answer);
+                res.redirect('/all.html');
+            }
+        }
+    );
+});
 
 app.use('/allAnswers', (req, res) => {
     Answer.find( {}, (err, answers) => {
