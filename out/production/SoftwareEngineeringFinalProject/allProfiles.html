@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>All Profiles</title>
+</head>
+<body>
+	<h1>Here are all the profiles in the database</h1>
+	<ul id="profiles-list">
+	</ul>
+
+	<script>
+		fetch('/allProfiles')
+			.then(response => response.json())
+			.then(data => {
+				const profList = document.getElementById("profiles-list");
+				data.forEach(profile => {
+					const li = document.createElement("li");
+					const userName = document.createTextNode(profile.user);
+					const deleteLink = document.createElement("a");
+					deleteLink.href = profile.deleteLink;
+					deleteLink.textContent = "[Delete]";
+					const editLink = document.createElement("a");
+					editLink.href = profile.editLink;
+					editLink.textContent = "[Edit]";
+					li.appendChild(userName);
+					li.appendChild(deleteLink);
+					li.appendChild(editLink);
+					profList.appendChild(li);
+				});
+			})
+			.catch(error => {
+				console.error(error);
+			});
+	</script>
+</body>
+</html>

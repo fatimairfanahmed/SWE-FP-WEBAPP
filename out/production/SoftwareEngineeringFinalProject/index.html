@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="app.css" />
+    <link
+      rel="stylesheet"
+      href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css"
+    />
+    <title>Please add questions to the survey</title>
+    <style>
+      .button {
+        padding: 10px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Please add questions to the survey</h1>
+    <div class="subscribe-container">
+
+
+      <form action="/create" method="POST">
+        <input type="text" name="questionText" placeholder="question" required />
+        <button type="submit" class="button">Submit Question</button>
+      </form>
+
+
+      <form action="/searchQuestion" method="GET">
+        <input type="text" name="questionText" placeholder="question" required />
+        <button type="submit" class="button">Search Question</button>
+      </form>
+
+      <form action="/all.html" method="GET" style="padding-top: 10px;">
+        <button type="submit" style="padding: 10px;">View All Questions</button>
+      </form>
+
+
+      <form action="/verifyLogin" >
+        <label for="Username">Username:</label><br>
+        <input type="text" id="userName" name="userName" value="username"><br>
+        <label for="password">Password:</label><br>
+        <input type="text" id="password" name="password" value="password"><br><br>
+        <input type="submit" value="Submit">
+      </form>
+
+
+    </div>
+  </body>
+</html>
