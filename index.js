@@ -93,6 +93,9 @@ app.get('/searchQuestion',(req,res) => {
            <input type="hidden" name="questionText" value="${questionText}">
            <input type="submit" value="Add">
          </form>
+
+         <button onclick="window.location.href='http://localhost:3000'">Go back to Main Page</button>
+
        </body>
      </html>
    `);
@@ -383,7 +386,7 @@ app.use('/loginsuccess', (req, res) => {
   res.write(" <a href=\"/createquestion" + "\">[Add a survey question]</a>");
   res.write('</li>');
   res.write('<ul>')
-  res.write(" <a href=\"/allprofiles" + "\">[View user profiles]</a>");
+  res.write(" <a href=\"/allprofiles.html" + "\">[View user profiles]</a>");
   res.write('</li>');
   res.end();
 });
@@ -429,7 +432,7 @@ app.use('/createprof', (req, res) =>{
           else{
               newProf.save()
           .then(() => {
-              res.redirect('/allProfiles');
+              res.redirect('/allProfiles.html');
           })
           .catch((error) => {
               console.log(error);
@@ -562,6 +565,7 @@ app.use('/allProfiles', (req, res) => {
             res.json(profList); // Send questionList as JSON
         }
       });
+
 });
 
 
