@@ -19,15 +19,15 @@ const Answer = require('./Answer.js');
 //first need to create the Survey!
 //This endpoint creates the Survey with a title, a description, and a set of qeustions
 app.use('/create', (req, res)=> {
-  // construct the Question from the form data which is in the request body
+    // construct the Question from the form data which is in the request body
     var newQuestion = new Question ({
-    questionText: req.body.questionText,
-        });
+        questionText: req.body.questionText,
+    });
     newQuestion.save()
         .then(() => {
             console.log('Question added:', newQuestion);
             res.redirect('/index.html'); //was create.html
-           // res.json({ success: 'Question' + ' " ' + newQuestion.questionText + ' " ' + ' saved successfully.' });
+            // res.json({ success: 'Question' + ' " ' + newQuestion.questionText + ' " ' + ' saved successfully.' });
         })
         .catch((error) => {
             console.error(error);
@@ -204,24 +204,24 @@ app.post('/edit', (req, res) => {
 
 //endpoint for viewing all the questions
 app.use('/all', (req, res) => {
-  Question.find( {}, (err, questions) => {
-    if (err) {
+    Question.find( {}, (err, questions) => {
+        if (err) {
             res.status(500).json({ error: err });
-    }
-    else {
+        }
+        else {
             const questionList = [];
 
 
             questions.forEach((question) => {
-              questionList.push({
-                question: question.questionText,
-                deleteLink: "/delete?text=" + question.questionText,
-                editLink: "/edit?text=" + question.questionText
-              });
+                questionList.push({
+                    question: question.questionText,
+                    deleteLink: "/delete?text=" + question.questionText,
+                    editLink: "/edit?text=" + question.questionText
+                });
             });
             res.json(questionList); // Send questionList as JSON
         }
-      });
+    });
 });
 
 
@@ -233,54 +233,68 @@ app.use('/all', (req, res) => {
 
 app.get('/delete', (req, res) => {
     const questionText = req.query.text;
- 
+
     // Find the question in the database and delete it
     Question.findOneAndDelete({ questionText }, (err, question) => {
-      if (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Could not delete question.' });
-      } else if (!question) {
-        res.status(404).json({ error: 'Question not found.' });
-      } else {
-        console.log('Question deleted:', question);
-        res.redirect('/all.html');
-      }
+        if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Could not delete question.' });
+        } else if (!question) {
+            res.status(404).json({ error: 'Question not found.' });
+        } else {
+            console.log('Question deleted:', question);
+            res.redirect('/all.html');
+        }
     });
 });
 
 app.use('/deleteAnswer', (req, res) => {
-    const ansID = req.query._id;
-    Answer.findOneAndDelete({}, (err, answer) =>{
-      if(err){
+    const { answerText, answerQuestion , user} = req.query;
+
+    Answer.findOneAndDelete({ answerQuestion: answerQuestion , answerText: answerText, user: user}, (err, answer) =>{      if(err){
         console.error(err);
         res.status(500).json({error: 'could not delete answer.'});
-      } else if (!answer){
+    } else if (!answer){
         res.status(404).json({error: 'Question not found.' });
-      } else {
+    } else {
         console.log('Answer deleted:', answer);
         res.redirect('/allAnswers');
-      }
+    }
     });
 });
 
-app.use('/FindAnswers', (req, res) => {
-  const userName = req.query.user;
-  console.log(userName);
-  Answer.find({user: userName}, (err, answers) => {
-    if (err) {
-        res.status(500).json({error: err});
+app.use('/deleteAllAnswers', (req, res) => {
+    Answer.findOneAndDelete( {}, (err, ans) => { if(err){
+        console.error(err);
+        res.status(500).json({error: 'could not delete answer.'});
+    }else if (!ans){
+        res.status(404).json({error: 'Question not found.'});
+    }else{
+        console.log('Answer deleted:', ans);
+        res.redirect('/deleteallAnswers');
     }
-    else{
-        const answerList = [];
+    });
+});
 
-        answers.forEach((answer) => {
-          answerList.push({
-            answer
-          });
-        });
-        res.json(answerList);
-    }
-  })
+
+app.use('/FindAnswers', (req, res) => {
+    const userName = req.query.user;
+    console.log(userName);
+    Answer.find({user: userName}, (err, answers) => {
+        if (err) {
+            res.status(500).json({error: err});
+        }
+        else{
+            const answerList = [];
+
+            answers.forEach((answer) => {
+                answerList.push({
+                    answer
+                });
+            });
+            res.json(answerList);
+        }
+    })
 });
 
 
@@ -306,11 +320,11 @@ app.use('/AddAnswer', (req, res) => {
 });
 
 app.use('/editAnswer', (req, res) => {
-    const { answerText, answerQuestion } = req.query;
+    const { answerText, answerQuestion , user} = req.query;
 
     // Update the answer in the database
     Answer.findOneAndUpdate(
-        { answerQuestion: answerQuestion },
+        { answerQuestion: answerQuestion , user: user},
         { answerText: answerText },
         { new: true },
         (err, answer) => {
@@ -319,41 +333,61 @@ app.use('/editAnswer', (req, res) => {
                 res.status(500).json({ error: 'Could not update answer.' });
             } else {
                 console.log('Answer updated:', answer);
-                res.redirect('/all.html');
+                res.redirect('/allAnswers');
             }
         }
     );
 });
 
 app.use('/allAnswers', (req, res) => {
-    Answer.find( {}, (err, answers) => {
+    const queryUser = req.query.user;
+    const highlightStyle = "style='background-color: yellow; font-weight: bold;'";
+
+    Answer.find({}, (err, answers) => {
         if (err) {
-            res.status(500).json({ error: err });
-        }
-        else {
-            const answerList = [];
-
-
+            res.status(500).send(`Error finding answers: ${err}`);
+        } else {
+            let highlightedAnswers = '';
+            let otherAnswers = '';
             answers.forEach((ans) => {
-                answerList.push({
-                    answerQuestion: ans.answerQuestion,
-                    answerText: ans.answerText,
-                    answerNumber: ans.answerNumber,
-                    date: ans.date,
-                    user: ans.user
-                    /*
-                    deleteLink: "/deleteProfile?userName=" + profile.userName,
-                    editLink: "/editProfile?userName=" + profile.userName
-
-                     */
-                });
+                let highlight = '';
+                if (queryUser && ans.user === queryUser) {
+                    highlight = highlightStyle;
+                }
+                const answerHTML = `<li ${highlight}>
+                    <div>User: ${ans.user}</div>
+                    <div>Question: ${ans.answerQuestion}</div>
+                    <div>Answer: ${ans.answerText}</div>
+                    <div>Number: ${ans.answerNumber}</div>
+                    <div>Date: ${ans.date}</div>
+                </li>`;
+                if (highlight) {
+                    highlightedAnswers += answerHTML;
+                } else {
+                    otherAnswers += answerHTML;
+                }
             });
-            res.json(answerList); // Send questionList as JSON
+            const answerList = highlightedAnswers + otherAnswers;
+            const html = `<html>
+                <head>
+                    <title>All Answers</title>
+                </head>
+                <body>
+                    <h1>All Answers</h1>
+                    <form>
+                        <label for="user">Search for user:</label>
+                        <input type="text" id="user" name="user" value="${queryUser || ''}">
+                        <button type="submit">Search</button>
+                    </form>
+                    <ul>
+                        ${answerList}
+                    </ul>
+                </body>
+            </html>`;
+            res.send(html);
         }
     });
 });
-
-
 
 
 
@@ -376,16 +410,16 @@ app.use('/createquestion', (req, res) => {
 
 
 app.use('/loginsuccess', (req, res) => {
-  res.type('html').status(200);
-  res.write('<li>');
-  res.write("Login successful, welcome!");
-  res.write('<ul>')
-  res.write(" <a href=\"/createquestion" + "\">[Add a survey question]</a>");
-  res.write('</li>');
-  res.write('<ul>')
-  res.write(" <a href=\"/allprofiles" + "\">[View user profiles]</a>");
-  res.write('</li>');
-  res.end();
+    res.type('html').status(200);
+    res.write('<li>');
+    res.write("Login successful, welcome!");
+    res.write('<ul>')
+    res.write(" <a href=\"/createquestion" + "\">[Add a survey question]</a>");
+    res.write('</li>');
+    res.write('<ul>')
+    res.write(" <a href=\"/allprofiles" + "\">[View user profiles]</a>");
+    res.write('</li>');
+    res.end();
 });
 
 
@@ -394,7 +428,7 @@ app.use('/loginsuccess', (req, res) => {
 
 
 app.use('/signup', (req, res) => {
-  res.sendFile(__dirname + "/createprofile.html");
+    res.sendFile(__dirname + "/createprofile.html");
 });
 
 
@@ -406,40 +440,40 @@ app.use('/createprof', (req, res) =>{
 
 
 
-  var newProf = new Profile ({
-      email: req.query.email,
-      password: req.query.password,
-      userName: req.query.userName
-  });
+    var newProf = new Profile ({
+        email: req.query.email,
+        password: req.query.password,
+        userName: req.query.userName
+    });
 
 
 
 
-  Profile.findOne({ userName: req.query.userName})
-      .then((user)=>{
-          if(user != null){
-              res.type('html').status(200);
-              res.write('<li>');
-              res.write("Username: \"" + req.query.userName + "\" is taken.");
-              res.write('<ul>')
-              res.write(" <a href=\"/signup" + "\">[Try another username]</a>");
-              res.write('</li>');
-              res.end();
-          }
-          else{
-              newProf.save()
-          .then(() => {
-              res.redirect('/allProfiles');
-          })
-          .catch((error) => {
-              console.log(error);
-          });
-          }
-      })
-      .catch((err)=>{
-          console.log(err);
-      });
-         
+    Profile.findOne({ userName: req.query.userName})
+        .then((user)=>{
+            if(user != null){
+                res.type('html').status(200);
+                res.write('<li>');
+                res.write("Username: \"" + req.query.userName + "\" is taken.");
+                res.write('<ul>')
+                res.write(" <a href=\"/signup" + "\">[Try another username]</a>");
+                res.write('</li>');
+                res.end();
+            }
+            else{
+                newProf.save()
+                    .then(() => {
+                        res.redirect('/allProfiles');
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            }
+        })
+        .catch((err)=>{
+            console.log(err);
+        });
+
 });
 
 
@@ -449,87 +483,87 @@ app.use('/createprof', (req, res) =>{
 
 
 app.use('/login', (req, res) =>{
-  res.sendFile(__dirname + "/loginForm.html");
+    res.sendFile(__dirname + "/loginForm.html");
 });
 
 
 
 
 app.use('/verifyLogin', (req, res) => {
-  var combo = new Profile({
-      userName: req.query.userName,
-      password: req.query.password
-  });
+    var combo = new Profile({
+        userName: req.query.userName,
+        password: req.query.password
+    });
 
 
 
 
-  Profile.findOne({ userName: combo.userName})
-  .then((user) =>{
-      if(user == null){
-          res.type('html').status(200);
-              res.write('<li>');
-              res.write("No account with username: " + combo.userName + " exists. ");
-              res.write('<ul>')
-              res.write(" <a href=\"/signup" + "\">[Create an account]</a>");
-              res.write('</li>');
-              res.write(" <a href=\"/login" + "\">[Try a different Login]</a>");
-              res.end();
-      }
-      else{
-          if(user.password == combo.password){
-              res.redirect('/loginsuccess'); // should be to home page
-          }
-          else{
-              res.type('html').status(200);
-              res.write('<li>');
-              res.write("Incorrect password");
-              res.write('<ul>')
-              res.write(" <a href=\"/signup" + "\">[Create an account]</a>");
-              res.write('</li>');
-              res.write(" <a href=\"/login" + "\">[Try a different Login]</a>");
-              res.end();
-          }
-      }
-  })
-  .catch((err) =>{
-      console.log(err);
-  })
+    Profile.findOne({ userName: combo.userName})
+        .then((user) =>{
+            if(user == null){
+                res.type('html').status(200);
+                res.write('<li>');
+                res.write("No account with username: " + combo.userName + " exists. ");
+                res.write('<ul>')
+                res.write(" <a href=\"/signup" + "\">[Create an account]</a>");
+                res.write('</li>');
+                res.write(" <a href=\"/login" + "\">[Try a different Login]</a>");
+                res.end();
+            }
+            else{
+                if(user.password == combo.password){
+                    res.redirect('/loginsuccess'); // should be to home page
+                }
+                else{
+                    res.type('html').status(200);
+                    res.write('<li>');
+                    res.write("Incorrect password");
+                    res.write('<ul>')
+                    res.write(" <a href=\"/signup" + "\">[Create an account]</a>");
+                    res.write('</li>');
+                    res.write(" <a href=\"/login" + "\">[Try a different Login]</a>");
+                    res.end();
+                }
+            }
+        })
+        .catch((err) =>{
+            console.log(err);
+        })
 });
 
 
 
 
 app.use('/deleteProfile', (req, res) => {
-  var filter = { 'userName' : req.query.userName };
-      Profile.findOneAndDelete( filter, (err, profile) => {
-          if(err) {
-              //res.json({ 'status' : err });
-              res.type('html').status(200);
-              res.write('<li>');
-              res.write(err);
-              res.write('</li>');
-          }
-          else if(!profile){
-              res.type('html').status(200);
-              res.write('<li>');
-              res.write('No Profile with that username exists');
-              res.write('</li>');
-          }
-          else{
-              res.type('html').status(200);
-              res.write('<li>');
-              res.write("User profile " + profile.userName + " successfully deleted. ");
-              res.write('<ul>')
-              res.write(" <a href=\"/allProfiles.html" + "\">[Return to profile list]</a>");
-              res.write('</li>');
-          }
-          res.end();
+    var filter = { 'userName' : req.query.userName };
+    Profile.findOneAndDelete( filter, (err, profile) => {
+        if(err) {
+            //res.json({ 'status' : err });
+            res.type('html').status(200);
+            res.write('<li>');
+            res.write(err);
+            res.write('</li>');
+        }
+        else if(!profile){
+            res.type('html').status(200);
+            res.write('<li>');
+            res.write('No Profile with that username exists');
+            res.write('</li>');
+        }
+        else{
+            res.type('html').status(200);
+            res.write('<li>');
+            res.write("User profile " + profile.userName + " successfully deleted. ");
+            res.write('<ul>')
+            res.write(" <a href=\"/allProfiles.html" + "\">[Return to profile list]</a>");
+            res.write('</li>');
+        }
+        res.end();
 
 
 
 
-   });
+    });
 });
 
 
@@ -542,99 +576,99 @@ app.use('/deleteProfile', (req, res) => {
 
 
 app.use('/allProfiles', (req, res) => {
-  Profile.find( {}, (err, profiles) => {
-    if (err) {
+    Profile.find( {}, (err, profiles) => {
+        if (err) {
             res.status(500).json({ error: err });
-    }
-    else {
+        }
+        else {
             const profList = [];
 
 
             profiles.forEach((profile) => {
-              profList.push({
-                user: profile.userName,
-                email: profile.email,
-                password: profile.password,
-                deleteLink: "/deleteProfile?userName=" + profile.userName,
-                editLink: "/editProfile?userName=" + profile.userName
-              });
+                profList.push({
+                    user: profile.userName,
+                    email: profile.email,
+                    password: profile.password,
+                    deleteLink: "/deleteProfile?userName=" + profile.userName,
+                    editLink: "/editProfile?userName=" + profile.userName
+                });
             });
             res.json(profList); // Send questionList as JSON
         }
-      });
+    });
 });
 
 
 
 
 app.use('/editemail', (req, res) =>{
-  res.type('html').status(200);
-  res.write('<body><h2>change email</h2>');
-  res.write('<form action="/changeemail" >');
-  //res.write('<label for="Username">Username: ' + req.query.userName + '</label><br>');
-  res.write('<input type="text" id="userName" name="userName" value=\"'+ req.query.userName +'\"><br><br>');
-  res.write('<label for="email">New Email:</label><br>');
-  res.write('<input type="text" id="email" name="email" value="Email"><br><br>');
-  res.write('<input type="submit" value="Submit">');
-  res.write('</form> ');
-  res.write('</body>');
-  //res.sendFile(__dirname + '/changeemail.html');
-  //take in new email
-  //send to change email
+    res.type('html').status(200);
+    res.write('<body><h2>change email</h2>');
+    res.write('<form action="/changeemail" >');
+    //res.write('<label for="Username">Username: ' + req.query.userName + '</label><br>');
+    res.write('<input type="text" id="userName" name="userName" value=\"'+ req.query.userName +'\"><br><br>');
+    res.write('<label for="email">New Email:</label><br>');
+    res.write('<input type="text" id="email" name="email" value="Email"><br><br>');
+    res.write('<input type="submit" value="Submit">');
+    res.write('</form> ');
+    res.write('</body>');
+    //res.sendFile(__dirname + '/changeemail.html');
+    //take in new email
+    //send to change email
 });
 
 
 
 
 app.use('/editpassword', (req, res) =>{
-  res.type('html').status(200);
-  res.write('<body><h2>change email</h2>');
-  res.write('<form action="/changepwd" >');
-  //res.write('<label for="Username">Username: ' + req.query.userName + '</label><br>');
-  res.write('<input type="text" id="userName" name="userName" value=\"'+ req.query.userName +'\"><br><br>');
-  res.write('<label for="email">New Password:</label><br>');
-  res.write('<input type="text" id="password" name="password" value="New Password"><br><br>');
-  res.write('<input type="submit" value="Submit">');
-  res.write('</form> ');
-  res.write('</body>');
-  //res.sendFile(__dirname + '/changeemail.html');
-  //take in new email
-  //send to change email
+    res.type('html').status(200);
+    res.write('<body><h2>change email</h2>');
+    res.write('<form action="/changepwd" >');
+    //res.write('<label for="Username">Username: ' + req.query.userName + '</label><br>');
+    res.write('<input type="text" id="userName" name="userName" value=\"'+ req.query.userName +'\"><br><br>');
+    res.write('<label for="email">New Password:</label><br>');
+    res.write('<input type="text" id="password" name="password" value="New Password"><br><br>');
+    res.write('<input type="submit" value="Submit">');
+    res.write('</form> ');
+    res.write('</body>');
+    //res.sendFile(__dirname + '/changeemail.html');
+    //take in new email
+    //send to change email
 });
 
 
 
 
 app.use('/changeemail', (req, res) =>{
-  Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{email: req.query.email}}, {new: true}, (err,doc) =>{
-      if(err){
-          console.log(err);
-      }
-      console.log(doc);
-  });
-  console.log('user' + req.query.userName + 'email: ' + req.query.email);
-  res.redirect('/allprofiles');
+    Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{email: req.query.email}}, {new: true}, (err,doc) =>{
+        if(err){
+            console.log(err);
+        }
+        console.log(doc);
+    });
+    console.log('user' + req.query.userName + 'email: ' + req.query.email);
+    res.redirect('/allprofiles');
 });
 
 
 
 
 app.use('/changepwd', (req, res) =>{
-  Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{password: req.query.password}}, {new: true}, (err,doc) =>{
-      if(err){
-          console.log(err);
-      }
-      console.log(doc);
-  });
-  console.log('user' + req.query.userName + 'email: ' + req.query.password);
-  res.redirect('/allprofiles');
+    Profile.findOneAndUpdate({ userName: req.query.userName} , {$set:{password: req.query.password}}, {new: true}, (err,doc) =>{
+        if(err){
+            console.log(err);
+        }
+        console.log(doc);
+    });
+    console.log('user' + req.query.userName + 'email: ' + req.query.password);
+    res.redirect('/allprofiles');
 });
 
 
 
 
 app.post('/', (req, res) => {
-   
+
 });
 
 
@@ -642,6 +676,6 @@ app.post('/', (req, res) => {
 
 
 
- app.listen(3000, () => {
-  console.log('Listening on port 3000');
-    });
+app.listen(3000, () => {
+    console.log('Listening on port 3000');
+});
