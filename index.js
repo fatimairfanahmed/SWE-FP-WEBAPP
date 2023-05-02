@@ -255,7 +255,7 @@ app.use('/deleteAnswer', (req, res) => {
         console.error(err);
         res.status(500).json({error: 'could not delete answer.'});
     } else if (!answer){
-        res.status(404).json({error: 'Question not found.' });
+        res.status(404).json({error: 'Answer not found.' });
     } else {
         console.log('Answer deleted:', answer);
         res.redirect('/allAnswers');
@@ -331,7 +331,9 @@ app.use('/editAnswer', (req, res) => {
             if (err) {
                 console.error(err);
                 res.status(500).json({ error: 'Could not update answer.' });
-            } else {
+            } if(!answer){
+                console.log(answerQuestion + " not found for " + user);
+            }else {
                 console.log('Answer updated:', answer);
                 res.redirect('/allAnswers');
             }
@@ -374,6 +376,7 @@ app.use('/allAnswers', (req, res) => {
                 </head>
                 <body>
                     <h1>All Answers</h1>
+                    <p><a href="/index.html">Return to home page</a></p>
                     <form>
                         <label for="user">Search for user:</label>
                         <input type="text" id="user" name="user" value="${queryUser || ''}">
